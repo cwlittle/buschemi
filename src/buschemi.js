@@ -15,7 +15,6 @@ const chunkArray = (input) => { return input.split('')
     }, [])
 };
 
-
 const getInscribedAngles = (numSides, angle) => {
     return [...Array(numSides).keys()]
         .reduce((angles, item) => {
@@ -36,7 +35,6 @@ const getInscribedPoints = (numSides, angle, r) => {
 
 const pointsToHSL = (points, lumosity) => {
     return points.map((point) => {
-        console.log(point)
         const angle =  Math.round(Math.atan(point[1]/point[0])*180/Math.PI) 
         const theta = () => angle >= 0 ? angle : Math.round(Math.atan(point[1]/point[0])*180/Math.PI) 
         const r = Math.round(Math.sqrt(point[0]**2 + point[1]**2))
@@ -44,11 +42,23 @@ const pointsToHSL = (points, lumosity) => {
     })
 }
 
+const hslToHex = (h, s, l) => {
+  l /= 100;
+  const a = s * Math.min(l, 1 - l) / 100;
+  const f = n => {
+    const k = (n + h / 30) % 12;
+    const color = l - a * Math.max(Math.min(k - 3, 9 - k, 1), -1);
+    return Math.round(255 * color).toString(16).padStart(2, '0');
+  };
+  return `#${f(0)}${f(8)}${f(4)}`;
+}
+
 const scheme = (numSides) => {
     const hsl = getRandomColor()
     const angles = getInscribedAngles(numSides, hsl[0])
     const hslScheme = angles.map((item) => { return [item%360, Math.round(hsl[1]), Math.round(hsl[2])]})
-    console.log(hslScheme)
+    return hslScheme.reduce((hex, hsl) => {
+        hex.push(hslToHex(hsl[0], hsl[1], hsl[2])) 
+        return hex
+    }, [])
 }
-
-scheme(4)
