@@ -1,21 +1,12 @@
-const getNumbers = (count) => {
-    return [...Array(count).keys()];
-}
-
-const generateRandomHexBit = () => {
-    const random = Math.random();
-    return ((random * 16) | 0).toString(16);
-}
-
 const getRandomColor = () => {
-    return getNumbers(6).reduce((hex, index) => {
-        return hex += generateRandomHexBit();
-    }, '#');
+    return [getRandomInt(360), getRandomInt(100), getRandomInt(100)]
+}
+
+const getRandomInt = (maxVal) => {
+    return Math.floor(Math.random() * Math.floor(maxVal)) 
 }
 
 const chunkArray = (input) => { return input.split('')
-    //this is a little fucky with the result array mutation, need to change that to make sure it's pure functional
-    //could go for a little condensing as well
     .reduce((resultArray, item, index) => { 
         chunkIndex = Math.floor(index/2)
         resultArray[chunkIndex] = resultArray[chunkIndex] || []
@@ -24,73 +15,40 @@ const chunkArray = (input) => { return input.split('')
     }, [])
 };
 
-const hexToRGB = (hex) => {
-    return chunkArray(hex.slice(1)).map((item) => parseInt(item.join(''), 16))
+
+const getInscribedAngles = (numSides, angle) => {
+    return [...Array(numSides).keys()]
+        .reduce((angles, item) => {
+            angles.push((item * 360/numSides + angle))
+            return angles
+        }, [])
 }
 
-const scaleRGB = (rgb) => {
-    return rgb.map(item => item/255)
+const getInscribedPoints = (numSides, angle, r) => {
+    return getInscribedAngles(numSides, angle)
+        .reduce((points, theta) => {
+            newX = r*Math.cos(theta * Math.PI/180) 
+            newY = r*Math.sin(theta * Math.PI/180)
+            points.push([newX, newY])
+            return points
+        }, []);
 }
 
-const rgbToHue = (inputRBG) => {
-    const rgb = scaleRGB(inputRBG);
-    const condList = [
-        rgb[0] >= rgb[1] && rgb[1] >= rgb[2],
-        rgb[1] > rgb[0] && rgb[0]>= rgb[2],
-        rgb[1] >= rgb[2] && rgb[2] > rgb[0],
-        rgb[2] > rgb[1] && rgb[1] > rgb[0],
-        rgb[2] > rgb[0] && rgb[0] > rgb[1],
-        rgb[0] >= rgb[2] && rgb[2] > rgb[1]
-    ]
-    const funcMap = [
-        () => {return 60 * ((rgb[1] - rgb[2])/(rgb[0] - rgb[2]))},
-        () => {return 60 * (2 - (rgb[0] - rgb[2])/(rgb[1] - rgb[2]))}, 
-        () => {return 60 * (2 + (rgb[2] - rgb[0])/(rgb[1] - rgb[0]))},
-        () => {return 60 * (4 - (rgb[1] - rgb[0])/(rgb[2] - rgb[0]))},
-        () => {return 60 * (4 + (rgb[0] - rgb[1])/(rgb[2] - rgb[1]))},
-        () => {return 60 * (6 - (rgb[2] - rgb[1])/(rgb[0] - rgb[1]))}
-    ]
-    return Math.round(funcMap[condList.findIndex(item => item)]())
+const pointsToHSL = (points, lumosity) => {
+    return points.map((point) => {
+        console.log(point)
+        const angle =  Math.round(Math.atan(point[1]/point[0])*180/Math.PI) 
+        const theta = () => angle >= 0 ? angle : Math.round(Math.atan(point[1]/point[0])*180/Math.PI) 
+        const r = Math.round(Math.sqrt(point[0]**2 + point[1]**2))
+        return [theta(), r, Math.round(lumosity)]
+    })
 }
 
-const rgbToSaturation = (inputRGB) => {
-    const lumosity = rgbToLumosity(inputRGB) 
-    const rgb = inputRGB.map((item) => item/255)
-    const condList = [
-        lumosity < 1,
-        lumosity == 1
-    ]
-    const funcMap = [
-        () => {
-            const numerator = Math.max(...rgb) - Math.min(...rgb)
-            const absArg = 2 * lumosity - 1
-            const denominator = 1 - Math.abs(absArg)
-            return numerator/denominator
-        },
-        () => 0
-    ]
-    return parseFloat(funcMap[condList.findIndex(item => item)]().toFixed(2))
+const scheme = (numSides) => {
+    const hsl = getRandomColor()
+    const angles = getInscribedAngles(numSides, hsl[0])
+    const hslScheme = angles.map((item) => { return [item%360, Math.round(hsl[1]), Math.round(hsl[2])]})
+    console.log(hslScheme)
 }
 
-const rgbToLumosity = (inputRBG) => {
-    const rgb = inputRBG.map((item) => item/255)
-    return parseFloat((0.5 * (Math.max(...rgb) + Math.min(...rgb))).toFixed(2))
-}
-
-const hexToHSL = (hex) => {
-    const rgb = hexToRGB(hex);
-    const hsl = [rgbToHue(rgb), rgbToSaturation(rgb), rgbToLumosity(rgb)]
-    return hsl
-}
-
-const HSLToCoordinate = (HSL) => {
-    
-}
-
-const scheme = () => {
-    const color = getRandomColor()
-    console.log(color)
-    console.log(hexToHSL(color));
-}
-
-scheme()
+scheme(4)
