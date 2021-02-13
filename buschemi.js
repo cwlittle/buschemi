@@ -70,3 +70,5 @@ const buschemi = function() {
         }
     }
 }();
+
+export default buschemi;
