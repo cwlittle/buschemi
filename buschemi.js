@@ -70,5 +70,3 @@ const buschemi = function() {
         }
     }
 }();
-
-console.log(buschemi.scheme(3))
