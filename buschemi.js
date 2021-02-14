@@ -1,6 +1,10 @@
 const buschemi = function() {
-    const getRandomColor = () => {
-        return [getRandomInt(360), getRandomInt(100), getRandomInt(100)]
+    const getRandomColor = (sRange, lRange) => {
+        const sMin = sRange[0] >= 0 && sRange[0] > sRange[1] ? sRange[0] : 0
+        const sMax = sRange[1] <= 100 && sRange[1] < sRange[0] ? sRange[1] : 100
+        const lMin = lRange[0] >= 0 && lRange[0] > lRange[1] ? lRange[0] : 0 
+        const lMax = lRange[1] <= 100 && lRange[1] < lRange[0] ? lRange[1]: 100
+        return [getRandomInt(360), getRandomInt(sMax - sMin) + sMin , getRandomInt(lMax - lMin) + lMin]
     }
 
     const getRandomInt = (maxVal) => {
@@ -55,7 +59,17 @@ const buschemi = function() {
     }
 
     const createScheme = (numSides) => {
-        const hsl = getRandomColor()
+        const hsl = getRandomColor([0, 100], [0, 100])
+        const angles = getInscribedAngles(numSides, hsl[0])
+        const hslScheme = angles.map((item) => { return [item%360, Math.round(hsl[1]), Math.round(hsl[2])]})
+        return hslScheme.reduce((hex, hsl) => {
+            hex.push(hslToHex(hsl[0], hsl[1], hsl[2])) 
+            return hex
+        }, [])
+    }
+    
+    const createRangedScheme = (numSides, sRange, lRange) => {
+        const hsl = getRandomColor(sRange, lRange)
         const angles = getInscribedAngles(numSides, hsl[0])
         const hslScheme = angles.map((item) => { return [item%360, Math.round(hsl[1]), Math.round(hsl[2])]})
         return hslScheme.reduce((hex, hsl) => {
@@ -67,6 +81,9 @@ const buschemi = function() {
     return {
         scheme: function scheme(numColors) {
             return createScheme(numColors)
+        },
+        rangedScheme: function rangedScheme(numColors, sRange, lRange) {
+            return createRangedScheme(numColors, sRange, lRange)
         }
     }
 }();
